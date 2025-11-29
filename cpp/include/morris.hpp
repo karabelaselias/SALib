@@ -769,18 +769,18 @@ inline Matrix compute_elementary_effects(
 
     #pragma omp parallel for if(num_trajectories > 4)
     for (size_t traj = 0; traj < num_trajectories; ++traj) {
-        // For each step in trajectory, find which parameter changed
+        // For each step in trajectory, find which parameter(s) changed
         for (size_t step = 1; step < trajectory_size; ++step) {
-            // Find which parameter changed
+            double output_diff = output_trajectories[traj][step] -
+                                output_trajectories[traj][step-1];
+
+            // Check all parameters - in grouped case, multiple params change together
             for (size_t param = 0; param < num_params; ++param) {
                 double diff = std::abs(input_trajectories[traj][step][param] -
                                       input_trajectories[traj][step-1][param]);
 
                 if (diff > 1e-10) {  // This parameter changed
-                    double output_diff = output_trajectories[traj][step] -
-                                        output_trajectories[traj][step-1];
                     elementary_effects[param][traj] += output_diff / delta;
-                    break;
                 }
             }
         }
